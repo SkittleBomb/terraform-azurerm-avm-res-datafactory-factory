@@ -16,6 +16,8 @@ provider "azurerm" {
   features {}
 }
 
+# We need the tenant id.
+data "azurerm_client_config" "this" {}
 
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
@@ -43,30 +45,16 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# A vnet is required
-resource "azurerm_virtual_network" "this" {
-  address_space       = ["10.0.0.0/16"]
+# Create a key vault
+resource "azurerm_key_vault" "this" {
+  name                = module.naming.key_vault.name_unique
   location            = azurerm_resource_group.this.location
-  name                = module.naming.virtual_network.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  tenant_id           = data.azurerm_client_config.this.tenant_id
+  sku_name            = "standard"
 }
 
-# A private endpoint vnet
-resource "azurerm_subnet" "privateendpoint" {
-  address_prefixes                          = ["10.0.3.0/24"]
-  name                                      = "${module.naming.subnet.name_unique}-private-endpoint"
-  resource_group_name                       = azurerm_resource_group.this.name
-  virtual_network_name                      = azurerm_virtual_network.this.name
-  private_endpoint_network_policies_enabled = false
-}
-
-# A private DNS zone for the private endpoint.
-resource "azurerm_private_dns_zone" "datafactory" {
-  name                = "privatelink.datafactory.azure.net"
-  resource_group_name = azurerm_resource_group.this.name
-}
-
-# Create Data Factory with Private Endpoint
+# This is the module call
 module "data_factory" {
   source = "../../"
 
@@ -75,19 +63,17 @@ module "data_factory" {
 
   public_network_enabled = false
 
-  private_endpoints = {
-    data_factory = {
-      subresource_name              = "dataFactory"
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.datafactory.id]
-      subnet_resource_id            = azurerm_subnet.privateendpoint.id
-      location                      = azurerm_resource_group.this.location
-    },
-    portal = {
-      subresource_name              = "portal"
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.datafactory.id]
-      subnet_resource_id            = azurerm_subnet.privateendpoint.id
-      location                      = azurerm_resource_group.this.location
-    },
+  identity = {
+    type         = "SystemAssigned"
+    identity_ids = []
+  }
+
+  linked_service_key_vault = {
+    key_vault1 = {
+      name            = "TestKeyVaultLinkedService"
+      data_factory_id = module.data_factory.resource.id
+      key_vault_id    = azurerm_key_vault.this.id
+    }
   }
 
   tags = {

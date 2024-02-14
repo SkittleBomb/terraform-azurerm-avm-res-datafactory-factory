@@ -29,17 +29,6 @@ variable "customer_managed_key_identity_id" {
   description = "Specifies the ID of the user assigned identity associated with the Customer Managed Key."
 }
 
-variable "data_factory_credentials" {
-  type = map(object({
-    user_assigned_identity_name = optional(string, null)
-    credential_description      = optional(string, null)
-    user_assigned_identity_id   = optional(string, null)
-    credential_annotations      = optional(list(string), null)
-  }))
-  default     = {}
-  description = "Configuration for the Data Factory Credentials and User Assigned Managed Identities."
-}
-
 variable "diagnostic_settings" {
   type = map(object({
     name                                     = optional(string, null)
