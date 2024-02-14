@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Linked Service Key Vault example
 
-This deploys the module in its simplest form.
+Manages a Linked Service (connection) between Key Vault and Azure Data Factory.
 
 ```hcl
 terraform {
@@ -22,6 +22,8 @@ provider "azurerm" {
   features {}
 }
 
+# We need the tenant id.
+data "azurerm_client_config" "this" {}
 
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
@@ -49,11 +51,13 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-# Create a user assigned managed identity
-resource "azurerm_user_assigned_identity" "this" {
+# Create a key vault
+resource "azurerm_key_vault" "this" {
+  name                = module.naming.key_vault.name_unique
   location            = azurerm_resource_group.this.location
-  name                = module.naming.user_assigned_identity.name_unique
   resource_group_name = azurerm_resource_group.this.name
+  tenant_id           = data.azurerm_client_config.this.tenant_id
+  sku_name            = "standard"
 }
 
 # This is the module call
@@ -66,16 +70,15 @@ module "data_factory" {
   public_network_enabled = false
 
   identity = {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.this.id]
+    type         = "SystemAssigned"
+    identity_ids = []
   }
 
-  data_factory_credentials = {
-    uami = {
-      user_assigned_identity_name = module.naming.user_assigned_identity.name_unique
-      credential_description      = "User Assigned Managed Identity"
-      user_assigned_identity_id   = azurerm_user_assigned_identity.this.id
-      credential_annotations      = ["annotation1", "annotation2"]
+  linked_service_key_vault = {
+    key_vault1 = {
+      name            = "TestKeyVaultLinkedService"
+      data_factory_id = module.data_factory.resource.id
+      key_vault_id    = azurerm_key_vault.this.id
     }
   }
 
@@ -110,9 +113,10 @@ The following providers are used by this module:
 
 The following resources are used by this module:
 
+- [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_user_assigned_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs

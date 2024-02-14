@@ -24,6 +24,8 @@ The following resources are used by this module:
 
 - [azurerm_data_factory.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory) (resource)
 - [azurerm_data_factory_credential_user_managed_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_credential_user_managed_identity) (resource)
+- [azurerm_data_factory_linked_service_azure_blob_storage.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_azure_blob_storage) (resource)
+- [azurerm_data_factory_linked_service_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_key_vault) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
@@ -175,6 +177,76 @@ Default:
   "type": "SystemAssigned"
 }
 ```
+
+### <a name="input_linked_service_azure_blob_storage"></a> [linked\_service\_azure\_blob\_storage](#input\_linked\_service\_azure\_blob\_storage)
+
+Description: Configuration for the Data Factory Linked Service Azure Blob Storage.
+
+Type:
+
+```hcl
+map(object({
+    name                       = string
+    data_factory_id            = string
+    description                = optional(string)
+    integration_runtime_name   = optional(string)
+    annotations                = optional(list(string))
+    parameters                 = optional(map(string))
+    additional_properties      = optional(map(string))
+    connection_string          = optional(string)
+    connection_string_insecure = optional(string)
+    sas_uri                    = optional(string)
+    key_vault_sas_token = optional(object({
+      linked_service_name = string
+      secret_name         = string
+    }))
+    service_principal_linked_key_vault_key = optional(object({
+      linked_service_name = string
+      secret_name         = string
+    }))
+    service_endpoint      = optional(string)
+    use_managed_identity  = optional(bool)
+    service_principal_id  = optional(string)
+    service_principal_key = optional(string)
+    storage_kind          = optional(string)
+    tenant_id             = optional(string)
+    timeouts = optional(object({
+      create = optional(string)
+      update = optional(string)
+      read   = optional(string)
+      delete = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_linked_service_key_vault"></a> [linked\_service\_key\_vault](#input\_linked\_service\_key\_vault)
+
+Description: Configuration for the Data Factory Linked Service Key Vault.
+
+Type:
+
+```hcl
+map(object({
+    name                     = string
+    data_factory_id          = string
+    key_vault_id             = string
+    description              = optional(string)
+    integration_runtime_name = optional(string)
+    annotations              = optional(list(string))
+    parameters               = optional(map(string))
+    additional_properties    = optional(map(string))
+    timeouts = optional(object({
+      create = optional(string)
+      update = optional(string)
+      read   = optional(string)
+      delete = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_location"></a> [location](#input\_location)
 

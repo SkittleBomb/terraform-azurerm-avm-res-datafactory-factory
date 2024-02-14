@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Data Factory credential example
 
-This deploys the module in its simplest form.
+Manage a Data Factory User Assigned Managed Identity credential resource.
 
 ```hcl
 terraform {

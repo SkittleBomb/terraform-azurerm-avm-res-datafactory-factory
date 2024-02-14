@@ -86,11 +86,13 @@ module "data_factory" {
       subresource_name              = "dataFactory"
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.datafactory.id]
       subnet_resource_id            = azurerm_subnet.privateendpoint.id
+      location                      = azurerm_resource_group.this.location
     },
     portal = {
       subresource_name              = "portal"
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.datafactory.id]
       subnet_resource_id            = azurerm_subnet.privateendpoint.id
+      location                      = azurerm_resource_group.this.location
     },
   }
 
