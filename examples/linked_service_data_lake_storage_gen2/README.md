@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Linked Service Azure Blob Storage Account example
+# Linked Service Azure Data Lake Storage Gen2 Account example
 
-Manages a Linked Service (connection) between an Azure Blob Storage Account and Azure Data Factory.
+Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
 
 ```hcl
 terraform {
@@ -89,7 +89,7 @@ module "storage_account" {
   account_replication_type          = "GRS"       # (Optional) Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to LRS.
   account_kind                      = "StorageV2" # (Optional) Defines the Kind to use for this storage account. Valid options are Storage, StorageV2, BlobStorage, FileStorage, BlockBlobStorage. Defaults to StorageV2.
   access_tier                       = "Hot"       # (Optional) Defines the access tier to use for this storage account. Valid options are Hot and Cool. Defaults to Hot.
-  is_hns_enabled                    = false       # (Optional) Defines whether or not Hierarchical Namespace is enabled for this storage account. Defaults to false
+  is_hns_enabled                    = true        # (Optional) Defines whether or not Hierarchical Namespace is enabled for this storage account. Defaults to false
   public_network_access_enabled     = true        # (Optional) Defines whether or not public network access is allowed for this storage account. Defaults to false.
   shared_access_key_enabled         = true        # (Optional) Defines whether or not shared access key is enabled for this storage account. Defaults to false.
   infrastructure_encryption_enabled = false       # (Optional) Defines whether or not infrastructure encryption is enabled for this storage account. Defaults to false.
@@ -100,6 +100,11 @@ module "storage_account" {
     ip_rules                   = []                       # (Optional) Defines the list of IP rules to apply to the storage account. Defaults to [].
     virtual_network_subnet_ids = [azurerm_subnet.this.id] # (Optional) Defines the list of virtual network subnet IDs to apply to the storage account. Defaults to [].
     bypass                     = ["AzureServices"]        # (Optional) Defines which traffic can bypass the network rules. Valid options are AzureServices and None. Defaults to [].
+    private_link_access = [
+      {
+        endpoint_resource_id = module.data_factory.resource.id
+      }
+    ]
   }
 
   private_endpoints = {
@@ -162,19 +167,11 @@ module "data_factory" {
     identity_ids = []
   }
 
-  linked_service_key_vault = {
-    key_vault1 = {
-      name            = "TestKeyVaultLinkedService"
-      data_factory_id = module.data_factory.resource.id
-      key_vault_id    = module.keyvault.resource.id
-    }
-  }
-
-  linked_service_azure_blob_storage = {
-    blob_storage1 = {
-      name                 = "TestBlobStorageLinkedService"
+  linked_service_data_lake_storage_gen2 = {
+    data_lake_storage1 = {
+      name                 = "TestlinkedServiceDataLakeStorageGen2"
       data_factory_id      = module.data_factory.resource.id
-      service_endpoint     = module.storage_account.resource.primary_blob_endpoint
+      url                  = module.storage_account.resource.primary_dfs_endpoint
       use_managed_identity = true
 
     }
