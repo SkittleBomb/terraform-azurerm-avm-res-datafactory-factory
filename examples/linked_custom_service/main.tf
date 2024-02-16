@@ -80,7 +80,7 @@ module "storage_account" {
   resource_group_name = azurerm_resource_group.this.name
 
   account_tier                      = "Standard"  # (Optional) Defines the Tier to use for this storage account. Valid options are Standard and Premium. Defaults to Standard.
-  account_replication_type          = "GRS"       # (Optional) Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to LRS.
+  account_replication_type          = "LRS"       # (Optional) Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to LRS.
   account_kind                      = "StorageV2" # (Optional) Defines the Kind to use for this storage account. Valid options are Storage, StorageV2, BlobStorage, FileStorage, BlockBlobStorage. Defaults to StorageV2.
   access_tier                       = "Hot"       # (Optional) Defines the access tier to use for this storage account. Valid options are Hot and Cool. Defaults to Hot.
   is_hns_enabled                    = true        # (Optional) Defines whether or not Hierarchical Namespace is enabled for this storage account. Defaults to false
@@ -188,24 +188,23 @@ module "data_factory" {
 
   linked_custom_service = {
     rest_service = {
-      name                 = "TestLinkedService"
-      data_factory_id      = module.data_factory.resource.id
-      type                 = "RestService"
-      type_properties_json = <<JSON
-{
-            "authenticationType": "Basic",
-            "url" : "https://api.test.com",
-            "userName": "testuser",
-            "password": {
-                "type": "AzureKeyVaultSecret",
-                "secretName": "testpassword",
-                "store":{
-                    "referenceName": "TestKeyVaultLinkedService",
-                    "type": "LinkedServiceReference"
-                }
-            }
-}
-JSON
+      name            = "TestLinkedService"
+      data_factory_id = module.data_factory.resource.id
+      type            = "RestService"
+      type_properties_json = jsonencode({
+        authenticationType                = "Basic"
+        url                               = "https://api.test.com"
+        enableServerCertificateValidation = true
+        userName                          = "testuser"
+        password = {
+          type       = "AzureKeyVaultSecret"
+          secretName = "testpassword"
+          store = {
+            referenceName = "TestKeyVaultLinkedService"
+            type          = "LinkedServiceReference"
+          }
+        }
+      })
 
     }
   }
