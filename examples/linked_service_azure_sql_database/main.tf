@@ -65,7 +65,7 @@ resource "azurerm_subnet" "this" {
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = ["10.0.1.0/24"]
 
-  service_endpoints = ["Microsoft.Storage"]
+  service_endpoints = ["Microsoft.Sql"]
 }
 
 resource "azurerm_private_dns_zone" "blob" {
@@ -90,10 +90,12 @@ resource "azuread_group_member" "this" {
 }
 
 module "sql_server" {
-  source = "git::https://github.com/SkittleBomb/terraform-azurerm-avm-res-sql-server.git?ref=main"
+  source = "git::https://github.com/SkittleBomb/terraform-azurerm-avm-res-sql-server.git?ref=acfddc675eb521d69a55796cc7bdbc3f1d17bc36"
 
-  sqlserver_name      = module.naming.sql_server.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  sqlserver_name                = module.naming.sql_server.name_unique
+  resource_group_name           = azurerm_resource_group.this.name
+  public_network_access_enabled = true
+
   azuread_administrator = {
     login_username              = azuread_group.this.display_name
     object_id                   = azuread_group.this.id
@@ -106,6 +108,23 @@ module "sql_server" {
       subnet_resource_id = azurerm_subnet.this.id
     }
   }
+
+  firewall_rule = {
+    Allow_Azure_Services = {
+      name             = "Allow_Azure_Services"
+      start_ip_address = "0.0.0.0"
+      end_ip_address   = "0.0.0.0"
+    }
+  }
+
+  network_rule = {
+    sql-vnet-rule = {
+      name                                 = "sql-vnet-rule"
+      subnet_id                            = azurerm_subnet.this.id
+      ignore_missing_vnet_service_endpoint = true
+    }
+  }
+
 
   database = {
     db1 = {
