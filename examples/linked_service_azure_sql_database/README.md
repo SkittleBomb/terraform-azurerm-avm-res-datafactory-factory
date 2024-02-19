@@ -15,6 +15,10 @@ terraform {
       source  = "hashicorp/random"
       version = ">= 3.5.0, < 4.0.0"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = ">=2.47.0"
+    }
   }
 }
 
@@ -24,6 +28,8 @@ provider "azurerm" {
 
 # We need the tenant id.
 data "azurerm_client_config" "this" {}
+
+data "azuread_client_config" "this" {}
 
 ## Section to provide a random Azure region for the resource group
 # This allows us to randomize the region for the resource group.
@@ -78,82 +84,46 @@ resource "azurerm_private_dns_zone" "datafactory" {
   resource_group_name = azurerm_resource_group.this.name
 }
 
+resource "azuread_group" "this" {
+  display_name     = "Group-${module.naming.sql_server.name_unique}"
+  owners           = [data.azuread_client_config.this.object_id]
+  security_enabled = true
+}
 
-module "storage_account" {
-  source = "git::https://github.com/SkittleBomb/terraform-azurerm-res-storage-storageaccount.git?ref=main"
+resource "azuread_group_member" "this" {
+  group_object_id  = azuread_group.this.id
+  member_object_id = module.data_factory.resource.identity[0].principal_id
+}
 
-  name                = module.naming.storage_account.name_unique
+module "sql_server" {
+  source = "git::https://github.com/SkittleBomb/terraform-azurerm-avm-res-sql-server.git?ref=main"
+
+  sqlserver_name      = module.naming.sql_server.name_unique
   resource_group_name = azurerm_resource_group.this.name
-
-  account_tier                      = "Standard"  # (Optional) Defines the Tier to use for this storage account. Valid options are Standard and Premium. Defaults to Standard.
-  account_replication_type          = "LRS"       # (Optional) Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to LRS.
-  account_kind                      = "StorageV2" # (Optional) Defines the Kind to use for this storage account. Valid options are Storage, StorageV2, BlobStorage, FileStorage, BlockBlobStorage. Defaults to StorageV2.
-  access_tier                       = "Hot"       # (Optional) Defines the access tier to use for this storage account. Valid options are Hot and Cool. Defaults to Hot.
-  is_hns_enabled                    = true        # (Optional) Defines whether or not Hierarchical Namespace is enabled for this storage account. Defaults to false
-  public_network_access_enabled     = true        # (Optional) Defines whether or not public network access is allowed for this storage account. Defaults to false.
-  shared_access_key_enabled         = true        # (Optional) Defines whether or not shared access key is enabled for this storage account. Defaults to false.
-  infrastructure_encryption_enabled = false       # (Optional) Defines whether or not infrastructure encryption is enabled for this storage account. Defaults to false.
-  default_to_oauth_authentication   = true
-
-  network_rules = {
-    default_action             = "Deny"                   # (Required) Defines the default action for network rules. Valid options are Allow and Deny.
-    ip_rules                   = []                       # (Optional) Defines the list of IP rules to apply to the storage account. Defaults to [].
-    virtual_network_subnet_ids = [azurerm_subnet.this.id] # (Optional) Defines the list of virtual network subnet IDs to apply to the storage account. Defaults to [].
-    bypass                     = ["AzureServices"]        # (Optional) Defines which traffic can bypass the network rules. Valid options are AzureServices and None. Defaults to [].
-    private_link_access = [
-      {
-        endpoint_resource_id = module.data_factory.resource.id
-      }
-    ]
+  azuread_administrator = {
+    login_username              = azuread_group.this.display_name
+    object_id                   = azuread_group.this.id
+    azuread_authentication_only = true
   }
 
   private_endpoints = {
-    blob = {
-      subresource_name              = "blob"
-      private_dns_zone_resource_ids = [azurerm_private_dns_zone.blob.id]
-      subnet_resource_id            = azurerm_subnet.this.id
-    }
-  }
-  role_assignments = {
-    storage_account_contributor = {
-      principal_id               = module.data_factory.resource.identity[0].principal_id
-      role_definition_id_or_name = "Storage Account Contributor"
+    private_endpoint1 = {
+      location           = azurerm_resource_group.this.location
+      subnet_resource_id = azurerm_subnet.this.id
     }
   }
 
-  tags = {
-    environment = "staging"
+  database = {
+    db1 = {
+      name         = module.naming.mssql_database.name_unique
+      collation    = "SQL_Latin1_General_CP1_CI_AS"
+      license_type = "LicenseIncluded"
+      sku_name     = "S0"
+    }
   }
 }
 
-# Create a key vault
-module "keyvault" {
 
-  source                        = "Azure/avm-res-keyvault-vault/azurerm"
-  name                          = module.naming.key_vault.name_unique
-  enable_telemetry              = false
-  location                      = azurerm_resource_group.this.location
-  resource_group_name           = azurerm_resource_group.this.name
-  tenant_id                     = data.azurerm_client_config.this.tenant_id
-  sku_name                      = "standard"
-  public_network_access_enabled = false
-  network_acls = {
-    bypass         = "AzureServices"
-    default_action = "Deny"
-  }
-
-  role_assignments = {
-    key_vault_contributor = {
-      principal_id               = module.data_factory.resource.identity[0].principal_id
-      role_definition_id_or_name = "Key Vault Secrets Officer"
-    },
-    key_vault_contributor2 = {
-      principal_id               = "66b1395c-32a9-4063-b90f-437cb427a9bb"
-      role_definition_id_or_name = "Key Vault Secrets Officer"
-    }
-  }
-
-}
 
 # This is the module call
 module "data_factory" {
@@ -162,7 +132,8 @@ module "data_factory" {
   name                = module.naming.data_factory.name_unique
   resource_group_name = azurerm_resource_group.this.name
 
-  public_network_enabled = false
+  public_network_enabled          = false
+  managed_virtual_network_enabled = true
 
   private_endpoints = {
     data_factory = {
@@ -184,35 +155,14 @@ module "data_factory" {
     identity_ids = []
   }
 
-  linked_service_key_vault = {
-    key_vault1 = {
-      name            = "TestKeyVaultLinkedService"
-      data_factory_id = module.data_factory.resource.id
-      key_vault_id    = module.keyvault.resource.id
-    }
-  }
 
-  linked_custom_service = {
-    rest_service = {
-      name            = "TestLinkedService"
-      data_factory_id = module.data_factory.resource.id
-      type            = "RestService"
-      type_properties_json = jsonencode({
-        authenticationType                = "Basic"
-        url                               = "https://api.test.com"
-        enableServerCertificateValidation = true
-        userName                          = "testuser"
-        password = {
-          type       = "AzureKeyVaultSecret"
-          secretName = "testpassword"
-          store = {
-            referenceName = "TestKeyVaultLinkedService"
-            type          = "LinkedServiceReference"
-          }
-        }
-      })
-
+  linked_service_azure_sql_database = {
+    db1 = {
+      name                 = "linkedServiceAzureSqlDatabase1"
+      connection_string    = "Data Source=tcp:${module.naming.sql_server.name_unique}.database.windows.net,1433;Initial Catalog=${module.naming.mssql_database.name_unique};Connection Timeout=30"
+      use_managed_identity = true
     }
+
   }
   tags = {
     environment = "test"
@@ -229,6 +179,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.3.0)
 
+- <a name="requirement_azuread"></a> [azuread](#requirement\_azuread) (>=2.47.0)
+
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
@@ -236,6 +188,8 @@ The following requirements are needed by this module:
 ## Providers
 
 The following providers are used by this module:
+
+- <a name="provider_azuread"></a> [azuread](#provider\_azuread) (>=2.47.0)
 
 - <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
 
@@ -245,12 +199,15 @@ The following providers are used by this module:
 
 The following resources are used by this module:
 
+- [azuread_group.this](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/group) (resource)
+- [azuread_group_member.this](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/group_member) (resource)
 - [azurerm_private_dns_zone.blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_private_dns_zone.datafactory](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_subnet.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
 - [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azuread_client_config.this](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/data-sources/client_config) (data source)
 - [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -276,12 +233,6 @@ Source: ../../
 
 Version:
 
-### <a name="module_keyvault"></a> [keyvault](#module\_keyvault)
-
-Source: Azure/avm-res-keyvault-vault/azurerm
-
-Version:
-
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
@@ -294,9 +245,9 @@ Source: Azure/regions/azurerm
 
 Version: >= 0.3.0
 
-### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
+### <a name="module_sql_server"></a> [sql\_server](#module\_sql\_server)
 
-Source: git::https://github.com/SkittleBomb/terraform-azurerm-res-storage-storageaccount.git
+Source: git::https://github.com/SkittleBomb/terraform-azurerm-avm-res-sql-server.git
 
 Version: main
 

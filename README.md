@@ -317,7 +317,6 @@ Type:
 ```hcl
 map(object({
     name                     = string
-    data_factory_id          = string
     connection_string        = optional(string)
     use_managed_identity     = optional(bool)
     service_principal_id     = optional(string)

@@ -31,9 +31,9 @@ resource "azurerm_data_factory_linked_service_azure_sql_database" "this" {
   }
 
   timeouts {
-    create = each.value.timeouts.create
-    update = each.value.timeouts.update
-    read   = each.value.timeouts.read
-    delete = each.value.timeouts.delete
+    create = try(each.value.timeouts.create, "30m")
+    update = try(each.value.timeouts.update, "30m")
+    read   = try(each.value.timeouts.read, "5m")
+    delete = try(each.value.timeouts.delete, "30m")
   }
 }
