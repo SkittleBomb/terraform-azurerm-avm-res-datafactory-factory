@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Linked Service Azure Data Lake Storage Gen2 Account example
+# Generic Linked Service example
 
-Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
+Manages a Linked Service (connection) between a resource and Azure Data Factory. This is a generic resource that supports all different Linked Service Types.
 
 ```hcl
 terraform {
@@ -86,7 +86,7 @@ module "storage_account" {
   resource_group_name = azurerm_resource_group.this.name
 
   account_tier                      = "Standard"  # (Optional) Defines the Tier to use for this storage account. Valid options are Standard and Premium. Defaults to Standard.
-  account_replication_type          = "GRS"       # (Optional) Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to LRS.
+  account_replication_type          = "LRS"       # (Optional) Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to LRS.
   account_kind                      = "StorageV2" # (Optional) Defines the Kind to use for this storage account. Valid options are Storage, StorageV2, BlobStorage, FileStorage, BlockBlobStorage. Defaults to StorageV2.
   access_tier                       = "Hot"       # (Optional) Defines the access tier to use for this storage account. Valid options are Hot and Cool. Defaults to Hot.
   is_hns_enabled                    = true        # (Optional) Defines whether or not Hierarchical Namespace is enabled for this storage account. Defaults to false
@@ -128,15 +128,32 @@ module "storage_account" {
 
 # Create a key vault
 module "keyvault" {
-  source              = "Azure/avm-res-keyvault-vault/azurerm"
-  name                = module.naming.key_vault.name_unique
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.this.tenant_id
+
+  source                        = "Azure/avm-res-keyvault-vault/azurerm"
+  name                          = module.naming.key_vault.name_unique
+  enable_telemetry              = false
+  location                      = azurerm_resource_group.this.location
+  resource_group_name           = azurerm_resource_group.this.name
+  tenant_id                     = data.azurerm_client_config.this.tenant_id
+  sku_name                      = "standard"
+  public_network_access_enabled = false
+  network_acls = {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+  }
+
+  role_assignments = {
+    key_vault_contributor = {
+      principal_id               = module.data_factory.resource.identity[0].principal_id
+      role_definition_id_or_name = "Key Vault Secrets Officer"
+    },
+    key_vault_contributor2 = {
+      principal_id               = "66b1395c-32a9-4063-b90f-437cb427a9bb"
+      role_definition_id_or_name = "Key Vault Secrets Officer"
+    }
+  }
 
 }
-
-
 
 # This is the module call
 module "data_factory" {
@@ -167,12 +184,33 @@ module "data_factory" {
     identity_ids = []
   }
 
-  linked_service_data_lake_storage_gen2 = {
-    data_lake_storage1 = {
-      name                 = "TestlinkedServiceDataLakeStorageGen2"
-      data_factory_id      = module.data_factory.resource.id
-      url                  = module.storage_account.resource.primary_dfs_endpoint
-      use_managed_identity = true
+  linked_service_key_vault = {
+    key_vault1 = {
+      name            = "TestKeyVaultLinkedService"
+      data_factory_id = module.data_factory.resource.id
+      key_vault_id    = module.keyvault.resource.id
+    }
+  }
+
+  linked_custom_service = {
+    rest_service = {
+      name            = "TestLinkedService"
+      data_factory_id = module.data_factory.resource.id
+      type            = "RestService"
+      type_properties_json = jsonencode({
+        authenticationType                = "Basic"
+        url                               = "https://api.test.com"
+        enableServerCertificateValidation = true
+        userName                          = "testuser"
+        password = {
+          type       = "AzureKeyVaultSecret"
+          secretName = "testpassword"
+          store = {
+            referenceName = "TestKeyVaultLinkedService"
+            type          = "LinkedServiceReference"
+          }
+        }
+      })
 
     }
   }

@@ -24,8 +24,10 @@ The following resources are used by this module:
 
 - [azurerm_data_factory.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory) (resource)
 - [azurerm_data_factory_credential_user_managed_identity.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_credential_user_managed_identity) (resource)
+- [azurerm_data_factory_linked_custom_service.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_custom_service) (resource)
 - [azurerm_data_factory_linked_service_azure_blob_storage.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_azure_blob_storage) (resource)
 - [azurerm_data_factory_linked_service_azure_databricks.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_azure_databricks) (resource)
+- [azurerm_data_factory_linked_service_azure_sql_database.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_azure_sql_database) (resource)
 - [azurerm_data_factory_linked_service_data_lake_storage_gen2.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_data_lake_storage_gen2) (resource)
 - [azurerm_data_factory_linked_service_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_key_vault) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
@@ -91,7 +93,7 @@ Default: `{}`
 
 ### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
 
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: A map of diagnostic settings to create. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
 - `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
@@ -180,6 +182,37 @@ Default:
 }
 ```
 
+### <a name="input_linked_custom_service"></a> [linked\_custom\_service](#input\_linked\_custom\_service)
+
+Description: The configuration of the Data Factory Linked Service
+
+Type:
+
+```hcl
+map(object({
+    name                  = string
+    data_factory_id       = string
+    type                  = string
+    type_properties_json  = string
+    additional_properties = optional(map(string))
+    annotations           = optional(list(string))
+    description           = optional(string)
+    integration_runtime = optional(object({
+      name       = string
+      parameters = optional(map(string))
+    }))
+    parameters = optional(map(string))
+    timeouts = optional(object({
+      create = optional(string)
+      read   = optional(string)
+      update = optional(string)
+      delete = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_linked_service_azure_blob_storage"></a> [linked\_service\_azure\_blob\_storage](#input\_linked\_service\_azure\_blob\_storage)
 
 Description: Configuration for the Data Factory Linked Service Azure Blob Storage.
@@ -264,6 +297,45 @@ map(object({
     description              = optional(string)
     integration_runtime_name = optional(string)
     parameters               = optional(map(string))
+    timeouts = optional(object({
+      create = optional(string)
+      update = optional(string)
+      read   = optional(string)
+      delete = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_linked_service_azure_sql_database"></a> [linked\_service\_azure\_sql\_database](#input\_linked\_service\_azure\_sql\_database)
+
+Description: Configuration options for the Azure SQL Database linked service.
+
+Type:
+
+```hcl
+map(object({
+    name                     = string
+    data_factory_id          = string
+    connection_string        = optional(string)
+    use_managed_identity     = optional(bool)
+    service_principal_id     = optional(string)
+    service_principal_key    = optional(string)
+    tenant_id                = optional(string)
+    description              = optional(string)
+    integration_runtime_name = optional(string)
+    annotations              = optional(list(string))
+    parameters               = optional(map(string))
+    additional_properties    = optional(map(string))
+    key_vault_connection_string = optional(object({
+      linked_service_name = string
+      secret_name         = string
+    }))
+    key_vault_password = optional(object({
+      linked_service_name = string
+      secret_name         = string
+    }))
     timeouts = optional(object({
       create = optional(string)
       update = optional(string)
@@ -498,6 +570,26 @@ Default: `null`
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_linked_custom_service"></a> [linked\_custom\_service](#output\_linked\_custom\_service)
+
+Description: A map of Data Factory Linked Custom Service resources.
+
+### <a name="output_linked_service_azure_blob_storage"></a> [linked\_service\_azure\_blob\_storage](#output\_linked\_service\_azure\_blob\_storage)
+
+Description: A map of Data Factory Linked Service Azure Blob Storage resources.
+
+### <a name="output_linked_service_azure_databricks"></a> [linked\_service\_azure\_databricks](#output\_linked\_service\_azure\_databricks)
+
+Description: A map of Data Factory Linked Service Azure Databricks resources.
+
+### <a name="output_linked_service_data_lake_storage_gen2"></a> [linked\_service\_data\_lake\_storage\_gen2](#output\_linked\_service\_data\_lake\_storage\_gen2)
+
+Description: A map of Data Factory Linked Service Data Lake Storage Gen2 resources. The map key is the supplied input to var.linked\_service\_data\_lake\_storage\_gen2. The map value is the entire azurerm\_data\_factory\_linked\_service\_data\_lake\_storage\_gen2 resource.
+
+### <a name="output_linked_service_key_vault"></a> [linked\_service\_key\_vault](#output\_linked\_service\_key\_vault)
+
+Description: A map of Data Factory Linked Service Key Vault resources.
 
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
