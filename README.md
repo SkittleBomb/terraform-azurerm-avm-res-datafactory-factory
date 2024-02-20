@@ -184,14 +184,32 @@ Default:
 
 ### <a name="input_linked_custom_service"></a> [linked\_custom\_service](#input\_linked\_custom\_service)
 
-Description: The configuration of the Data Factory Linked Service
+Description: The configuration of the Data Factory Linked Service.
+
+The following arguments are supported:
+
+- `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `type` - (Required) The type of the Data Factory Linked Service.
+- `type_properties_json` - (Required) The JSON string of the type properties for the Data Factory Linked Service.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
+- `description` - (Optional) The description for the Data Factory Linked Service.
+- `integration_runtime` - (Optional) An integration\_runtime block. Use this argument to specify the integration runtime for the Data Factory Linked Service.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `update` - (Optional) Used for Updating Timeouts. Default is 30 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
 
 Type:
 
 ```hcl
 map(object({
     name                  = string
-    data_factory_id       = string
     type                  = string
     type_properties_json  = string
     additional_properties = optional(map(string))
@@ -217,12 +235,39 @@ Default: `{}`
 
 Description: Configuration for the Data Factory Linked Service Azure Blob Storage.
 
+The following arguments are supported:
+
+- `name` - (Required) Specifies the name of the Data Factory Linked Service Azure Blob Storage. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `description` - (Optional) The description for the Data Factory Linked Service Azure Blob Storage.
+- `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Azure Blob Storage.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Azure Blob Storage.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Azure Blob Storage.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Azure Blob Storage.
+- `connection_string` - (Optional) The connection string in which to authenticate with Azure Blob Storage.
+- `connection_string_insecure` - (Optional) The insecure connection string in which to authenticate with Azure Blob Storage.
+- `sas_uri` - (Optional) The SAS URI in which to authenticate with Azure Blob Storage.
+- `key_vault_sas_token` - (Optional) A key\_vault\_sas\_token block. Use this argument to store Azure Blob Storage SAS token in an existing Key Vault.
+- `service_principal_linked_key_vault_key` - (Optional) A service\_principal\_linked\_key\_vault\_key block. Use this argument to store Azure Blob Storage service principal key in an existing Key Vault.
+- `service_endpoint` - (Optional) The service endpoint for Azure Blob Storage.
+- `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure Blob Storage.
+- `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure Blob Storage.
+- `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure Blob Storage.
+- `storage_kind` - (Optional) The kind of storage for Azure Blob Storage.
+- `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure Blob Storage.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `update` - (Optional) Used for Updating Timeouts. Default is 30 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
+
 Type:
 
 ```hcl
 map(object({
     name                       = string
-    data_factory_id            = string
     description                = optional(string)
     integration_runtime_name   = optional(string)
     annotations                = optional(list(string))
@@ -258,16 +303,55 @@ Default: `{}`
 
 ### <a name="input_linked_service_azure_databricks"></a> [linked\_service\_azure\_databricks](#input\_linked\_service\_azure\_databricks)
 
-Description: Configuration for the Data Factory Linked Service Data Lake Storage Gen2.
+Description: Configuration for the Data Factory Linked Service Azure Databricks.
+
+The following arguments are supported:
+
+- `adb_domain` - (Required) Specifies the Azure Databricks domain.
+- `name` - (Required) Specifies the name of the Data Factory Linked Service Azure Databricks. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `access_token` - (Optional) The access token in which to authenticate with Azure Databricks.
+- `key_vault_password` - (Optional) A key\_vault\_password block. Use this argument to store Azure Databricks password in an existing Key Vault. This block supports the following:
+  - `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+  - `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Azure Databricks password.
+- `msi_work_space_resource_id` - (Optional) The Managed Service Identity (MSI) workspace resource ID for Azure Databricks.
+- `existing_cluster_id` - (Optional) The existing cluster ID for Azure Databricks.
+- `instance_pool` - (Optional) An instance\_pool block. Use this argument to specify the instance pool for Azure Databricks. This block supports the following:
+  - `instance_pool_id` - (Required) Specifies the instance pool ID for Azure Databricks.
+  - `cluster_version` - (Required) Specifies the cluster version for Azure Databricks.
+  - `min_number_of_workers` - (Optional) Specifies the minimum number of workers for Azure Databricks.
+  - `max_number_of_workers` - (Optional) Specifies the maximum number of workers for Azure Databricks.
+- `new_cluster_config` - (Optional) A new\_cluster\_config block. Use this argument to specify the new cluster configuration for Azure Databricks. This block supports the following:
+  - `cluster_version` - (Required) Specifies the cluster version for Azure Databricks.
+  - `node_type` - (Required) Specifies the node type for Azure Databricks.
+  - `custom_tags` - (Optional) Specifies the custom tags for Azure Databricks.
+  - `driver_node_type` - (Optional) Specifies the driver node type for Azure Databricks.
+  - `init_scripts` - (Optional) Specifies the initialization scripts for Azure Databricks.
+  - `log_destination` - (Optional) Specifies the log destination for Azure Databricks.
+  - `max_number_of_workers` - (Optional) Specifies the maximum number of workers for Azure Databricks.
+  - `min_number_of_workers` - (Optional) Specifies the minimum number of workers for Azure Databricks.
+  - `spark_config` - (Optional) Specifies the Spark configuration for Azure Databricks.
+  - `spark_environment_variables` - (Optional) Specifies the Spark environment variables for Azure Databricks.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Azure Databricks.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Azure Databricks.
+- `description` - (Optional) The description for the Data Factory Linked Service Azure Databricks.
+- `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Azure Databricks.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Azure Databricks.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `update` - (Optional) Used for Updating Timeouts. Default is 30 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
 
 Type:
 
 ```hcl
 map(object({
-    adb_domain      = string
-    data_factory_id = string
-    name            = string
-    access_token    = optional(string)
+    adb_domain   = string
+    name         = string
+    access_token = optional(string)
     key_vault_password = optional(object({
       linked_service_name = string
       secret_name         = string
@@ -312,6 +396,32 @@ Default: `{}`
 
 Description: Configuration options for the Azure SQL Database linked service.
 
+The following arguments are supported:
+
+- `name` - (Required) Specifies the name of the Data Factory Linked Service Azure SQL Database. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `connection_string` - (Optional) The connection string in which to authenticate with Azure SQL Database. Exactly one of either connection\_string or key\_vault\_connection\_string is required.
+- `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Azure SQL Database. Incompatible with service\_principal\_id and service\_principal\_key
+- `service_principal_id` - (Optional) The service principal id in which to authenticate against the Azure SQL Database. Required if service\_principal\_key is set.
+- `service_principal_key` - (Optional) The service principal key in which to authenticate against the Azure SQL Database. Required if service\_principal\_id is set.
+- `tenant_id` - (Optional) The tenant id or name in which to authenticate against the Azure SQL Database.
+- `description` - (Optional) The description for the Data Factory Linked Service Azure SQL Database.
+- `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Azure SQL Database.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Azure SQL Database.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Azure SQL Database.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Azure SQL Database.
+- `key_vault_connection_string` - (Optional) A key\_vault\_connection\_string block. Use this argument to store Azure SQL Database connection string in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service. Exactly one of either connection\_string or key\_vault\_connection\_string is required.
+- `key_vault_password` - (Optional) A key\_vault\_password block. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
+
+A `key_vault_connection_string` block supports the following:
+
+- `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+- `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores SQL Server connection string.
+
+A `key_vault_password` block supports the following:
+
+- `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+- `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores SQL Server password.
+
 Type:
 
 ```hcl
@@ -350,12 +460,34 @@ Default: `{}`
 
 Description: Configuration for the Data Factory Linked Service Data Lake Storage Gen2.
 
+The following arguments are supported:
+
+- `name` - (Required) Specifies the name of the Data Factory Linked Service Data Lake Storage Gen2. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `description` - (Optional) The description for the Data Factory Linked Service Data Lake Storage Gen2.
+- `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Data Lake Storage Gen2.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Data Lake Storage Gen2.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Data Lake Storage Gen2.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Data Lake Storage Gen2.
+- `url` - (Required) The URL of the Data Lake Storage Gen2.
+- `storage_account_key` - (Optional) The storage account key for the Data Lake Storage Gen2.
+- `use_managed_identity` - (Optional) Whether to use the Data Factory's managed identity to authenticate against the Data Lake Storage Gen2.
+- `service_principal_id` - (Optional) The service principal id in which to authenticate against the Data Lake Storage Gen2.
+- `service_principal_key` - (Optional) The service principal key in which to authenticate against the Data Lake Storage Gen2.
+- `tenant` - (Optional) The tenant id or name in which to authenticate against the Data Lake Storage Gen2.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `update` - (Optional) Used for Updating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
+
 Type:
 
 ```hcl
 map(object({
     name                     = string
-    data_factory_id          = string
     description              = optional(string)
     integration_runtime_name = optional(string)
     annotations              = optional(list(string))
@@ -382,12 +514,29 @@ Default: `{}`
 
 Description: Configuration for the Data Factory Linked Service Key Vault.
 
+The following arguments are supported:
+
+- `name` - (Required) Specifies the name of the Data Factory Linked Service Key Vault. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `key_vault_id` - (Required) The Key Vault ID in which to associate the Linked Service with. Changing this forces a new resource.
+- `description` - (Optional) The description for the Data Factory Linked Service Key Vault.
+- `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Key Vault.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Key Vault.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Key Vault.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Key Vault.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `update` - (Optional) Used for Updating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
+
 Type:
 
 ```hcl
 map(object({
     name                     = string
-    data_factory_id          = string
     key_vault_id             = string
     description              = optional(string)
     integration_runtime_name = optional(string)

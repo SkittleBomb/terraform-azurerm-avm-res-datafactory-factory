@@ -273,7 +273,6 @@ module "data_factory" {
   linked_service_azure_databricks = {
     data_bricks_1 = {
       name                       = "TestDatabricksLinkedService"
-      data_factory_id            = module.data_factory.resource.id
       adb_domain                 = format("https://%s", module.databricks.resource.workspace_url)
       msi_work_space_resource_id = module.databricks.resource.id
       new_cluster_config = {

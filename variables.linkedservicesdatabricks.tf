@@ -1,9 +1,8 @@
 variable "linked_service_azure_databricks" {
   type = map(object({
-    adb_domain      = string
-    data_factory_id = string
-    name            = string
-    access_token    = optional(string)
+    adb_domain   = string
+    name         = string
+    access_token = optional(string)
     key_vault_password = optional(object({
       linked_service_name = string
       secret_name         = string
@@ -47,5 +46,47 @@ variable "linked_service_azure_databricks" {
   }
 
   default     = {}
-  description = "Configuration for the Data Factory Linked Service Data Lake Storage Gen2."
+  description = <<DESC
+Configuration for the Data Factory Linked Service Azure Databricks.
+
+The following arguments are supported:
+
+- `adb_domain` - (Required) Specifies the Azure Databricks domain.
+- `name` - (Required) Specifies the name of the Data Factory Linked Service Azure Databricks. Changing this forces a new resource to be created. Must be unique within a data factory.
+- `access_token` - (Optional) The access token in which to authenticate with Azure Databricks.
+- `key_vault_password` - (Optional) A key_vault_password block. Use this argument to store Azure Databricks password in an existing Key Vault. This block supports the following:
+  - `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+  - `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Azure Databricks password.
+- `msi_work_space_resource_id` - (Optional) The Managed Service Identity (MSI) workspace resource ID for Azure Databricks.
+- `existing_cluster_id` - (Optional) The existing cluster ID for Azure Databricks.
+- `instance_pool` - (Optional) An instance_pool block. Use this argument to specify the instance pool for Azure Databricks. This block supports the following:
+  - `instance_pool_id` - (Required) Specifies the instance pool ID for Azure Databricks.
+  - `cluster_version` - (Required) Specifies the cluster version for Azure Databricks.
+  - `min_number_of_workers` - (Optional) Specifies the minimum number of workers for Azure Databricks.
+  - `max_number_of_workers` - (Optional) Specifies the maximum number of workers for Azure Databricks.
+- `new_cluster_config` - (Optional) A new_cluster_config block. Use this argument to specify the new cluster configuration for Azure Databricks. This block supports the following:
+  - `cluster_version` - (Required) Specifies the cluster version for Azure Databricks.
+  - `node_type` - (Required) Specifies the node type for Azure Databricks.
+  - `custom_tags` - (Optional) Specifies the custom tags for Azure Databricks.
+  - `driver_node_type` - (Optional) Specifies the driver node type for Azure Databricks.
+  - `init_scripts` - (Optional) Specifies the initialization scripts for Azure Databricks.
+  - `log_destination` - (Optional) Specifies the log destination for Azure Databricks.
+  - `max_number_of_workers` - (Optional) Specifies the maximum number of workers for Azure Databricks.
+  - `min_number_of_workers` - (Optional) Specifies the minimum number of workers for Azure Databricks.
+  - `spark_config` - (Optional) Specifies the Spark configuration for Azure Databricks.
+  - `spark_environment_variables` - (Optional) Specifies the Spark environment variables for Azure Databricks.
+- `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service Azure Databricks.
+- `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service Azure Databricks.
+- `description` - (Optional) The description for the Data Factory Linked Service Azure Databricks.
+- `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service Azure Databricks.
+- `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service Azure Databricks.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `update` - (Optional) Used for Updating Timeouts. Default is 30 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
+DESC
 }

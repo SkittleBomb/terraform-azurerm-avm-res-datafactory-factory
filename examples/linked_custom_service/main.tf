@@ -181,7 +181,6 @@ module "data_factory" {
   linked_service_key_vault = {
     key_vault1 = {
       name            = "TestKeyVaultLinkedService"
-      data_factory_id = module.data_factory.resource.id
       key_vault_id    = module.keyvault.resource.id
     }
   }
@@ -189,7 +188,6 @@ module "data_factory" {
   linked_custom_service = {
     rest_service = {
       name            = "TestLinkedService"
-      data_factory_id = module.data_factory.resource.id
       type            = "RestService"
       type_properties_json = jsonencode({
         authenticationType                = "Basic"
