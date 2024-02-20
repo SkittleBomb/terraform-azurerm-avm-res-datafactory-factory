@@ -34,3 +34,13 @@ output "linked_service_key_vault" {
   description = "A map of Data Factory Linked Service Key Vault resources."
   value       = azurerm_data_factory_linked_service_key_vault.this
 }
+
+output "data_factory_credential_user_managed_identity_id" {
+  description = "The ID of the Data Factory User Managed Identity Credential."
+  value       = azurerm_data_factory_credential_user_managed_identity.this
+}
+
+output "linked_service_azure_sql_database_ids" {
+  description = "The IDs of the Data Factory Linked Service Azure SQL Database."
+  value       = { for k, v in azurerm_data_factory_linked_service_azure_sql_database.this : k => v.id }
+}

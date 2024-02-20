@@ -134,7 +134,16 @@ module "data_factory" {
   name                = module.naming.data_factory.name_unique
   resource_group_name = azurerm_resource_group.this.name
 
-  public_network_enabled = false
+  public_network_enabled          = false
+  managed_virtual_network_enabled = true
+
+  managed_private_endpoint = {
+    storagepe = {
+      name               = "TestStoragePE"
+      target_resource_id = module.storage_account.resource.id
+      subresource_name   = "blob"
+    }
+  }
 
   private_endpoints = {
     data_factory = {

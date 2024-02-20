@@ -30,6 +30,7 @@ The following resources are used by this module:
 - [azurerm_data_factory_linked_service_azure_sql_database.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_azure_sql_database) (resource)
 - [azurerm_data_factory_linked_service_data_lake_storage_gen2.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_data_lake_storage_gen2) (resource)
 - [azurerm_data_factory_linked_service_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_linked_service_key_vault) (resource)
+- [azurerm_data_factory_managed_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/data_factory_managed_private_endpoint) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
@@ -577,6 +578,42 @@ object({
 
 Default: `{}`
 
+### <a name="input_managed_private_endpoint"></a> [managed\_private\_endpoint](#input\_managed\_private\_endpoint)
+
+Description: Configuration for the Managed Private Endpoint.
+
+The following arguments are supported:
+
+- `name` - (Required) Specifies the name which should be used for this Managed Private Endpoint. Changing this forces a new resource to be created.
+- `target_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Data Factory Private Endpoint should be connected to. Changing this forces a new resource to be created.
+- `subresource_name` - (Optional) Specifies the sub resource name which the Data Factory Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+- `fqdns` - (Optional) Fully qualified domain names. Changing this forces a new resource to be created.
+- `timeouts` - (Optional) An optional timeouts block as defined below.
+
+The `timeouts` block supports the following:
+
+- `create` - (Optional) Used for Creating Timeouts. Default is 30 minutes.
+- `read` - (Optional) Used for Reading Timeouts. Default is 5 minutes.
+- `delete` - (Optional) Used for Deleting Timeouts. Default is 30 minutes.
+
+Type:
+
+```hcl
+map(object({
+    name               = string
+    target_resource_id = string
+    subresource_name   = optional(string)
+    fqdns              = optional(list(string))
+    timeouts = optional(object({
+      create = optional(string)
+      read   = optional(string)
+      delete = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_managed_virtual_network_enabled"></a> [managed\_virtual\_network\_enabled](#input\_managed\_virtual\_network\_enabled)
 
 Description: Is Managed Virtual Network enabled?
@@ -719,6 +756,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_data_factory_credential_user_managed_identity_id"></a> [data\_factory\_credential\_user\_managed\_identity\_id](#output\_data\_factory\_credential\_user\_managed\_identity\_id)
+
+Description: The ID of the Data Factory User Managed Identity Credential.
+
 ### <a name="output_linked_custom_service"></a> [linked\_custom\_service](#output\_linked\_custom\_service)
 
 Description: A map of Data Factory Linked Custom Service resources.
@@ -730,6 +771,10 @@ Description: A map of Data Factory Linked Service Azure Blob Storage resources.
 ### <a name="output_linked_service_azure_databricks"></a> [linked\_service\_azure\_databricks](#output\_linked\_service\_azure\_databricks)
 
 Description: A map of Data Factory Linked Service Azure Databricks resources.
+
+### <a name="output_linked_service_azure_sql_database_ids"></a> [linked\_service\_azure\_sql\_database\_ids](#output\_linked\_service\_azure\_sql\_database\_ids)
+
+Description: The IDs of the Data Factory Linked Service Azure SQL Database.
 
 ### <a name="output_linked_service_data_lake_storage_gen2"></a> [linked\_service\_data\_lake\_storage\_gen2](#output\_linked\_service\_data\_lake\_storage\_gen2)
 
